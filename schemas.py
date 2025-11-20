@@ -1,48 +1,65 @@
 """
-Database Schemas
+Database Schemas for Theatre Studio Nepal
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Each Pydantic model represents a collection in MongoDB.
+Collection name is the lowercase of the class name.
 """
+from typing import List, Optional, Literal
+from pydantic import BaseModel, Field, HttpUrl
 
-from pydantic import BaseModel, Field
-from typing import Optional
 
-# Example schemas (replace with your own):
-
-class User(BaseModel):
+class Event(BaseModel):
     """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
+    Theatre events (performances, workshops, festivals)
+    Collection: "event"
     """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    title: str = Field(..., description="Event title")
+    description: Optional[str] = Field(None, description="Short description")
+    date: str = Field(..., description="ISO date string (e.g., 2025-01-31)")
+    venue: Optional[str] = Field(None, description="Venue name")
+    city: Optional[str] = Field(None, description="City")
+    country: Optional[str] = Field("Nepal", description="Country")
+    status: Literal["live", "upcoming", "past"] = Field(
+        "upcoming", description="Event status"
+    )
+    cover_image: Optional[HttpUrl] = Field(None, description="Cover image URL")
+    tags: List[str] = Field(default_factory=list, description="Tags/genres")
 
-class Product(BaseModel):
+
+class Publication(BaseModel):
     """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
+    Publications (books, research papers, articles)
+    Collection: "publication"
     """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+    title: str
+    authors: List[str] = Field(default_factory=list)
+    year: Optional[int] = None
+    link: Optional[HttpUrl] = None
+    cover_image: Optional[HttpUrl] = None
+    summary: Optional[str] = None
 
-# Add your own schemas here:
-# --------------------------------------------------
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Work(BaseModel):
+    """
+    Original works/productions
+    Collection: "work"
+    """
+    title: str
+    year: Optional[int] = None
+    type: Literal["play", "production", "workshop", "festival", "other"] = "play"
+    description: Optional[str] = None
+    images: List[HttpUrl] = Field(default_factory=list)
+
+
+class Galleryitem(BaseModel):
+    """
+    Gallery assets
+    Collection: "galleryitem"
+    """
+    title: str
+    image_url: HttpUrl
+    category: Optional[str] = None
+    taken_at: Optional[str] = Field(None, description="ISO date string")
+
+
+# Note: The Flames database viewer can introspect these at /schema
